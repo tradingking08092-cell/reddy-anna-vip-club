@@ -1,0 +1,187 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WinGo | Reddy Anna VIP Club</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#101116;color:#fff;font-family:Arial,sans-serif}
+header{background:linear-gradient(90deg,#191919,#3b2912);padding:17px;text-align:center;color:#ffd477;font-size:20px;font-weight:900}
+.wrap{max-width:520px;margin:auto;padding:12px}
+.panel{background:#202128;border:1px solid #4b3b20;border-radius:15px;padding:15px;margin-bottom:14px}
+.gold{color:#ffd477}
+.top{display:flex;justify-content:space-between;align-items:center}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:14px}
+button{border:0;border-radius:9px;padding:12px 5px;color:white;font-weight:bold;cursor:pointer}
+.tabs button{background:#303139;font-size:12px}
+.tabs button.active{background:linear-gradient(120deg,#b98125,#f7d77e);color:#241600}
+.timer{font-size:42px;font-weight:900;letter-spacing:4px;color:#ffd477;text-align:center}
+.period{text-align:center;font-size:12px;color:#aaa;overflow-wrap:anywhere}
+.colors{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}
+.green{background:#12a86b}
+.violet{background:#9149da}
+.red{background:#e3444d}
+.numbers{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.ball{width:100%;aspect-ratio:1;border-radius:50%;font-size:23px;border:3px solid #ffffff30;box-shadow:inset 0 -7px 9px #0005}
+.bigsmall{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}
+.big{background:#e7a03d}
+.small{background:#458ad5}
+.selected{outline:3px solid #ffeaa3;outline-offset:2px}
+.play{width:100%;background:linear-gradient(90deg,#b67c22,#ffe39a);color:#271900;font-size:17px;margin-top:15px}
+.result{background:#15161b;border-radius:10px;padding:13px;text-align:center;margin-top:12px;min-height:45px}
+.history{width:100%;border-collapse:collapse;text-align:center;font-size:13px}
+.history th,.history td{padding:11px 4px;border-bottom:1px solid #393940}
+.dot{display:inline-block;width:14px;height:14px;border-radius:50%}
+.note{color:#999;font-size:12px;text-align:center;line-height:1.5}
+a{color:#ffd477;text-decoration:none}
+</style>
+</head>
+<body>
+<header>♛ REDDY ANNA VIP CLUB</header>
+<div class="wrap">
+<p><a href="index.html">← Home</a></p>
+<div class="panel">
+<div class="top">
+<strong class="gold">WinGo Practice</strong>
+<span>🪙 Free Play</span>
+</div>
+<p class="note">Virtual rounds only • No real money</p>
+</div>
+
+<div class="tabs">
+<button onclick="setMode(30)" class="active">WinGo 30s</button>
+<button onclick="setMode(60)">WinGo 1m</button>
+<button onclick="setMode(180)">WinGo 3m</button>
+<button onclick="setMode(300)">WinGo 5m</button>
+</div>
+
+<div class="panel">
+<div class="top">
+<span class="gold">Time Remaining</span>
+<span id="mode">30 Seconds</span>
+</div>
+<div class="timer" id="timer">00:30</div>
+<div class="period" id="period"></div>
+</div>
+
+<div class="panel">
+<h3 class="gold">Choose Your Prediction</h3>
+<div class="colors">
+<button class="green" onclick="choose('Green',this)">Green</button>
+<button class="violet" onclick="choose('Violet',this)">Violet</button>
+<button class="red" onclick="choose('Red',this)">Red</button>
+</div>
+<div class="numbers" id="numbers"></div>
+<div class="bigsmall">
+<button class="big" onclick="choose('Big',this)">Big</button>
+<button class="small" onclick="choose('Small',this)">Small</button>
+</div>
+<button class="play" onclick="submitPrediction()">Confirm Prediction</button>
+<div class="result" id="message">Select an option to play</div>
+</div>
+
+<div class="panel">
+<h3 class="gold">Game History</h3>
+<table class="history">
+<thead>
+<tr><th>Period</th><th>Number</th><th>Size</th><th>Color</th></tr>
+</thead>
+<tbody id="history"></tbody>
+</table>
+</div>
+<p class="note">Practice results are generated locally. Predictions have no cash value.</p>
+</div>
+<script>
+let duration=30;
+let selected="";
+let prediction=null;
+let history=[];
+let roundEnd=Date.now()+duration*1000;
+let roundId=1;
+
+const numbers=document.getElementById("numbers");
+for(let i=0;i<10;i++){
+let b=document.createElement("button");
+b.className="ball";
+b.textContent=i;
+b.style.background=i===0||i===5?"linear-gradient(130deg,#15ad73 50%,#9149da 50%)":i%2===0?"#e3444d":"#12a86b";
+if(i===5)b.style.background="linear-gradient(130deg,#e3444d 50%,#9149da 50%)";
+b.onclick=()=>choose(String(i),b);
+numbers.appendChild(b);
+}
+function choose(value,element){
+selected=value;
+document.querySelectorAll(".selected").forEach(x=>x.classList.remove("selected"));
+element.classList.add("selected");
+document.getElementById("message").textContent="Selected: "+value;
+}
+function setMode(seconds){
+duration=seconds;
+roundEnd=Date.now()+duration*1000;
+roundId=1;
+selected="";
+prediction=null;
+history=[];
+document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+event.target.classList.add("active");
+document.querySelectorAll(".selected").forEach(b=>b.classList.remove("selected"));
+document.getElementById("mode").textContent=seconds+" Seconds";
+document.getElementById("message").textContent="New practice session";
+renderHistory();
+tick();
+}
+function submitPrediction(){
+if(!selected){alert("Choose an option first");return}
+if(prediction!==null){alert("Prediction already submitted");return}
+prediction=selected;
+document.getElementById("message").textContent="Prediction locked: "+selected;
+}
+function getColors(n){
+if(n===0)return ["Red","Violet"];
+if(n===5)return ["Green","Violet"];
+return [n%2===0?"Red":"Green"];
+}
+function finishRound(){
+let n=Math.floor(Math.random()*10);
+let colors=getColors(n);
+let size=n>=5?"Big":"Small";
+let won=prediction!==null&&(
+prediction===String(n)||
+prediction===size||
+colors.includes(prediction)
+);
+history.unshift({id:roundId,n,size,colors});
+history=history.slice(0,15);
+document.getElementById("message").textContent=
+"Result: "+n+" • "+colors.join("/")+
+(prediction===null?"":won?" • Correct prediction!":" • Try again!");
+prediction=null;
+selected="";
+document.querySelectorAll(".selected").forEach(b=>b.classList.remove("selected"));
+renderHistory();
+roundId++;
+}
+function renderHistory(){
+document.getElementById("history").innerHTML=history.map(h=>
+`<tr><td>${h.id}</td><td>${h.n}</td><td>${h.size}</td><td>${h.colors.map(c=>`<span class="dot" style="background:${c.toLowerCase()}"></span>`).join(" ")}</td></tr>`
+).join("");
+}
+function tick(){
+let remaining=Math.max(0,Math.ceil((roundEnd-Date.now())/1000));
+if(remaining===0){
+finishRound();
+roundEnd=Date.now()+duration*1000;
+remaining=duration;
+}
+document.getElementById("timer").textContent=
+String(Math.floor(remaining/60)).padStart(2,"0")+":"+
+String(remaining%60).padStart(2,"0");
+document.getElementById("period").textContent="Practice Round #"+roundId;
+}
+tick();
+setInterval(tick,250);
+</script>
+</body>
+</html>
